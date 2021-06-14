@@ -22,25 +22,25 @@ class PixelGrid {
 		}
 	}
 
-	update(customStrokeColor=false) {
-		let strokeColor = this.ctx.strokeStyle;
-
+	update() {
 		let fillColor = this.ctx.fillStyle;
+		let strokeColor = this.ctx.strokeStyle;
 		for (let i = 0; i < this.width; i++) {
 			for (let j = 0; j < this.height; j++) {
 				let hex = this.decToHex(this.grid[i][j]);
 				this.ctx.fillStyle = `rgb(${hex[0] * 16 + hex[1]}, ${hex[2] * 16 + hex[3]}, ${hex[4] * 16 + hex[5]})`;
-				if (strokeColor == null) {
-					this.ctx.fillStyle = `rgb(${hex[0] * 16 + hex[1]}, ${hex[2] * 16 + hex[3]}, ${hex[4] * 16 + hex[5]})`;
-				} else {
-					this.ctx.strokeStyle = `rgb(${customStrokeColor[0] * 16 + customStrokeColor[1]}, ${customStrokeColor[2] * 16 + customStrokeColor[3]}, ${customStrokeColor[4] * 16 + customStrokeColor[5]})`;
-				}
+				this.ctx.strokeStyle = `rgb(${hex[0] * 16 + hex[1]}, ${hex[2] * 16 + hex[3]}, ${hex[4] * 16 + hex[5]})`;
 				this.ctx.fillRect(i * this.pixelSize, j * this.pixelSize, (i+1) * this.pixelSize, (j+1) * this.pixelSize);
 			}
 		}
 
 		this.ctx.fillStyle = fillColor;
 		this.ctx.strokeStyle = strokeColor;
+
+		this.cells = [];
+		for (let i = 0; i < this.grid.length; i++) {
+			this.cells = this.cells.concat(this.grid[i]);
+		}
 	}
 
 	decToHex(dec) {
@@ -64,6 +64,113 @@ class PixelGrid {
 		return dec;
 	}
 }
+
+function gridToBin(array) {
+    var tempArray = [[]];
+    var binArray = [];
+    var byteArray = [];
+
+    var index = 0;
+
+    for (var i in array) {
+        if (i % 8 == 0 && i != 0) {
+            index++
+            tempArray[index] = []
+        }
+        tempArray[index].push(array[i]);
+    }
+
+    for (var i in tempArray) {
+        binArray[i] = "";
+        for(var j in tempArray[i]) {
+            if (tempArray[i][j]) {
+                binArray[i] += '1'
+            } else {
+                binArray[i] += '0'
+            }
+        }
+        if (binArray[i].length != 8) {
+            binArray[i] += '0'.repeat(8 - binArray[i].length);
+        }
+    }
+
+    for (var i in binArray) {
+        byteArray[i] = parseInt(binArray[i], 2);
+    }
+
+    return Uint8Array.from(byteArray);
+}
+
+function saveFile(file, filename) {
+	var a = document.createElement("a");
+	document.body.appendChild(a);
+	a.style = "display: none";
+	var url = window.URL.createObjectURL(file);
+	a.href = url;
+	a.download = filename;
+	a.click();
+	window.URL.revokeObjectURL(url);
+	a.remove();
+}
+
+function loadFile(e) {
+	var file = e.target.files[0];
+	if (!file) {
+	  	return;
+	}
+	var read = new FileReader();
+
+	read.readAsArrayBuffer(file);
+
+	read.onloadend = function() {
+		var data = new Uint8Array(read.result);
+
+		var numsArray = [];
+		for (var i in data) {
+			var binary = (data[i] >>> 0).toString(2);
+			numsArray[i] = binary;
+			if (numsArray[i].length != 8) {
+				numsArray[i] = '0'.repeat(8 - binary.length) + binary;
+			}
+		}
+
+		for (let i = 0; i < pixelGrid.grid.length; i++) {
+			for (let j = 0; j < pixelGrid.grid[i].length; j++) {
+				pixelGrid.grid[i][j] = 0;
+			}
+		}
+
+		var cells = "";
+
+		for (var i in numsArray) {
+			for (var j in numsArray[i]) {
+				cells += numsArray[i][j];
+			}
+		}
+		
+		var row = 0;
+		var column = 0;
+
+		for (var i in cells) {
+			if (cells[i] == '0') {
+				pixelGrid.grid[row][column] = 0;
+			} else {
+				pixelGrid.grid[row][column] = 0xFFFFFF;
+			}
+
+			column++
+
+			if (column == 64 && row != 63) {
+				column = 0;
+				row++
+			}
+		}
+
+		genNum = 0;
+		pixelGrid.update();
+		genNumLabel.innerText = `Generation #${genNum}`;
+	}
+}  
 
 let genNumLabel = document.createElement('div');
 genNumLabel.style.display = 'inline-block';
@@ -121,7 +228,6 @@ function step() {
 	genNumLabel.innerText = `Generation #${++genNum}`;
 }
 
-
 let pixelGrid = new PixelGrid(64, 64, "canvas", 10);
 
 let button = document.createElement('input');
@@ -129,23 +235,49 @@ button.type = 'button';
 button.value = 'Start';
 button.style.display = 'inline-block';
 
+let nextButton = document.createElement('input');
+nextButton.type = 'button';
+nextButton.value = 'Next';
+Object.assign(nextButton.style, {
+	display: 'inline-block',
+	marginLeft: '10px'
+});
+
 let randomButton = document.createElement('input');
 randomButton.type = 'button';
 randomButton.value = 'Random';
-randomButton.style.display = 'inline-block';
-randomButton.style.marginLeft = '10px';
+Object.assign(randomButton.style, {
+	display: 'inline-block',
+	marginLeft: '10px'
+});
 
 let clearButton = document.createElement('input');
 clearButton.type = 'button';
 clearButton.value = 'Clear';
-clearButton.style.display = 'inline-block';
-clearButton.style.marginLeft = '10px';
+Object.assign(clearButton.style, {
+	display: 'inline-block',
+	marginLeft: '10px'
+});
 
-let nextButton = document.createElement('input');
-nextButton.type = 'button';
-nextButton.value = 'Next';
-nextButton.style.display = 'inline-block';
-nextButton.style.marginLeft = '10px';
+let saveButton = document.createElement('input');
+saveButton.type = 'button';
+saveButton.value = 'Save';
+Object.assign(saveButton.style, {
+	display: 'inline-block',
+	marginLeft: '10px'
+});
+
+let loadInput = document.createElement('input');
+loadInput.type = 'file';
+loadInput.style.display = 'none';
+
+let loadButton = document.createElement('input');
+loadButton.type = 'button';
+loadButton.value = 'Load'
+Object.assign(loadButton.style, {
+	display: 'inline-block',
+	marginLeft: '10px'
+});
 
 let input = document.createElement('input');
 input.type = 'range';
@@ -155,13 +287,30 @@ input.value = 800;
 input.style.marginLeft = '10px';
 
 let dataBlock = document.createElement('div');
-dataBlock.style.display = 'inline-block';
-dataBlock.style.marginLeft = '8px';
+Object.assign(dataBlock.style, {
+	display: 'inline-block',
+	marginLeft: '8px'
+});
 
 let buttonBlock = document.createElement('div');
 buttonBlock.style.display = 'block';
-buttonBlock.style.marginTop = '10px';
-buttonBlock.style.marginLeft = '10px';
+Object.assign(dataBlock.style, {
+	marginTop: '10px',
+	marginLeft: '10px'
+});
+
+let credits = document.createElement('div');
+credits.innerText = 'Made by ';
+Object.assign(credits.style, {
+	position: 'absolute',
+	left: 0,
+	bottom: 0,
+	margin: '10px'
+});
+
+let authorURL = document.createElement('a');
+authorURL.innerText = 'Dest0re';
+authorURL.href = 'https://dest0re.ru/';
 
 let speed = 1000 - parseInt(input.value);
 let speedLabel = document.createElement('div');
@@ -174,10 +323,14 @@ buttonBlock.append(button);
 buttonBlock.append(nextButton);
 buttonBlock.append(randomButton);
 buttonBlock.append(clearButton);
+buttonBlock.append(saveButton);
+buttonBlock.append(loadButton);
+buttonBlock.append(loadInput);
 document.body.append(dataBlock);
 document.body.append(buttonBlock);
 document.body.append(input);
-
+document.body.append(credits);
+credits.append(authorURL);
 
 function onClick(e) {
 	let x = parseInt((e.pageX - canvas.offsetLeft) / pixelGrid.pixelSize);
@@ -191,7 +344,6 @@ function onClick(e) {
 
 	pixelGrid.update();
 }
-
 
 pixelGrid.canvas.onmousedown = onClick;
 pixelGrid.canvas.ontouchend = onClick;
@@ -247,5 +399,21 @@ clearButton.onclick = () => {
 	genNumLabel.innerText = `Generation #${genNum}`;
 }
 
-pixelGrid.update();
+saveButton.onclick = () => {
+	var cells = [];
 
+	for (let i = 0; i < pixelGrid.grid.length; i++) {
+		cells = cells.concat(pixelGrid.grid[i]);
+	}
+
+	let file = new Blob([gridToBin(cells)], {type: 'application/octet-stream'});
+	saveFile(file, 'data.bin');
+}
+
+loadButton.onclick = () => {
+	loadInput.click();
+}
+
+loadInput.onchange = loadFile;
+
+pixelGrid.update();
