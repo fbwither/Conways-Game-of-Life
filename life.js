@@ -418,8 +418,29 @@ saveButton.onclick = () => {
 		cells = cells.concat(pixelGrid.grid[i]);
 	}
 
-	let file = new Blob([gridToBin(cells)], {type: 'application/octet-stream'});
-	saveFile(file, 'data.bin');
+	let saveField = document.createElement('input');
+	saveField.placeholder = 'Filename';
+	Object.assign(saveField.style, {
+		display: 'inline-block',
+		marginLeft: '10px'
+	});
+
+	buttonBlock.replaceChild(saveField, saveButton);
+
+	saveField.onkeypress = function(e){
+		if (e.key == 'Enter') {
+			let filename = saveField.value;
+
+			if (filename.length == 0) {
+				filename = 'data';
+			}
+
+			let file = new Blob([gridToBin(cells)], {type: 'application/octet-stream'});
+			saveFile(file, filename);
+			buttonBlock.replaceChild(saveButton, saveField);
+		}
+	};
+
 }
 
 loadButton.onclick = () => {
