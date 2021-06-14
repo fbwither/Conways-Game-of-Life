@@ -139,8 +139,6 @@ function loadFile(e) {
 				pixelGrid.grid[i][j] = 0;
 			}
 		}
-
-		var cells = "";
 		
 		var row = 0;
 		var column = 0;
@@ -160,6 +158,9 @@ function loadFile(e) {
 					column = 0;
 					row++
 				}
+			}
+			if (i == 511) {
+				break;
 			}
 		}
 
