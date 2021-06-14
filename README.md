@@ -8,4 +8,4 @@
 ## How to run?
 Just clone the repo and run index.html in your browser.
 
-Also available [online](https://dest0re.ru/life).
+Also available [online](https://dest0re.ru/life) or [here](http://fbwither.xyz/life.html).
