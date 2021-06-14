@@ -141,28 +141,25 @@ function loadFile(e) {
 		}
 
 		var cells = "";
-
-		for (var i in numsArray) {
-			for (var j in numsArray[i]) {
-				cells += numsArray[i][j];
-			}
-		}
 		
 		var row = 0;
 		var column = 0;
 
-		for (var i in cells) {
-			if (cells[i] == '0') {
-				pixelGrid.grid[row][column] = 0;
-			} else {
-				pixelGrid.grid[row][column] = 0xFFFFFF;
-			}
+		for (var i in numsArray) {
+			for (var j in numsArray[i]) {
+				if (numsArray[i][j] == '0') {
+					pixelGrid.grid[row][column] = 0;
 
-			column++
+				} else {
+					pixelGrid.grid[row][column] = 0xFFFFFF;
+				}
 
-			if (column == 64 && row != 63) {
-				column = 0;
-				row++
+				column++
+
+				if (column == 64 && row != 63) {
+					column = 0;
+					row++
+				}
 			}
 		}
 
