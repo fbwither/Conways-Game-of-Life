@@ -297,14 +297,25 @@ Object.assign(dataBlock.style, {
 	marginLeft: '10px'
 });
 
-let credits = document.createElement('div');
-credits.innerText = 'Made by ';
-Object.assign(credits.style, {
+let bottomBlock = document.createElement('div');
+Object.assign(bottomBlock.style, {
 	position: 'absolute',
 	left: 0,
 	bottom: 0,
 	margin: '10px'
 });
+
+let github = document.createElement('a');
+github.href = 'https://github.com/fbwither/Conways-Game-of-Life';
+Object.assign(github.style, {
+	display: 'inline-block',
+});
+
+let githubLogo = document.createElement('img');
+githubLogo.src = 'https://cdn.discordapp.com/attachments/633390751786729493/854111991198253086/GitHub-Mark-32px.png';
+
+let credits = document.createElement('div');
+credits.innerText = 'Made by ';
 
 let authorURL = document.createElement('a');
 authorURL.innerText = 'Dest0re';
@@ -324,10 +335,13 @@ buttonBlock.append(clearButton);
 buttonBlock.append(saveButton);
 buttonBlock.append(loadButton);
 buttonBlock.append(loadInput);
+bottomBlock.append(github);
+bottomBlock.append(credits);
 document.body.append(dataBlock);
 document.body.append(buttonBlock);
 document.body.append(input);
-document.body.append(credits);
+document.body.append(bottomBlock);
+github.append(githubLogo);
 credits.append(authorURL);
 
 function onClick(e) {
